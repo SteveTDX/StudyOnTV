@@ -210,10 +210,13 @@ class LearningEngine(private val store: LocalStore) {
             if (subjects.isNotEmpty() || levels.isNotEmpty()) "当前答题范围没有题目，请检查题库的科目 / 年级或调整答题范围" else "题库为空，请由家长添加题目"
         }
         val last = round.optJSONObject("question")?.optString("id")
-        var question = bank.getJSONObject(0)
-        for (i in 0 until bank.length()) {
-            if (bank.getJSONObject(i).optString("id") != last) { question = bank.getJSONObject(i); break }
-        }
+        // 之前是「取题库里第一个 id 不等于上一题的题」：题库顺序一旦稳定（例如按科目/年级过滤后题目很少，
+        // 或设备端 SQLite 的 RANDOM() 未生效），就永远只在头两题之间来回跳，表现为“答完又回到第一题”。
+        // 改为从题库中随抽一道不等于上一题的题，保证真正向前推进；题库仅 1 题时退化为原题。
+        val pool = (0 until bank.length())
+            .map { bank.getJSONObject(it) }
+            .filter { it.optString("id") != last }
+        val question = if (pool.isEmpty()) bank.getJSONObject(0) else pool.random()
         round.put("question", question).put("nonce", UUID.randomUUID().toString())
         val extraEnabled = round.optJSONObject("rules")?.optBoolean("extraEnabled", true) ?: true
         round.put("extra", if (round.optString("mode") == "practice") number("extra_pool") > 0
