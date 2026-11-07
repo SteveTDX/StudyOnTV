@@ -1,15 +1,15 @@
 {
-  "version": "0.3.10",
-  "versionCode": 15,
+  "version": "0.3.11",
+  "versionCode": 16,
   "force": false,
-  "notes": "v0.3.10：版本检查仅使用本仓库 Release 与 update.json，移除第三方更新通道与上游仓库链接；多网卡时生成多个管理地址与二维码；保留规则即时生效、填空回车提交、TV 答案回填修复，以及 AI 批改模式下的填空判分。",
-  "publishedAt": "2026-11-07T08:49:20.065Z",
+  "notes": "v0.3.11：TV 填空输入页点「确定」/回车直接提交答案，不再需要点击「提交答案」；参考答案为英文/数字等拉丁字符的填空题不再进入 AI 批改队列，直接本地完全匹配并忽略所有空格差异，中文近义题与主观题仍按原逻辑批改。",
+  "publishedAt": "2026-11-07T09:34:12.344Z",
   "assets": {
     "tv": {
-      "name": "StudyOnTV-TV-v0.3.10.apk",
-      "url": "https://github.com/SteveTDX/StudyOnTV/releases/download/v0.3.10/StudyOnTV-TV-v0.3.10.apk",
-      "sha256": "d07bf2f4e6fbd02f87b4b32547ac0ba66c73b1bc05f5ad8f83987d93664d6911",
-      "size": 1818799
+      "name": "StudyOnTV-TV-v0.3.11.apk",
+      "url": "https://github.com/SteveTDX/StudyOnTV/releases/download/v0.3.11/StudyOnTV-TV-v0.3.11.apk",
+      "sha256": "b5c1cb0fa06340c901a0d8c8181220b291a60f22c0c9b3b460cff063ab8c36fb",
+      "size": 1819245
     }
   }
 }

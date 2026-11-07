@@ -120,7 +120,7 @@
       if (isTv()) {
         // 遥控器无法直接在网页输入框里打字：按 OK 打开原生输入框（可调出系统输入法 / 语音）
         input.readOnly = true; input.className += ' focusable'; input.setAttribute('data-action', 'type-answer');
-        input.placeholder = '按 OK 键输入答案';
+        input.placeholder = '按 OK 键输入答案，确定后自动提交';
       } else {
         // 可编辑的填空框里按回车 = 点击「提交答案」。
         // Shift/Ctrl/Alt+回车、输入法组词中的回车都不拦截，仍可换行 / 正常选词。
@@ -522,8 +522,12 @@
   window.SOTV_INPUT = function (result) {
     if (!state.round) return;
     state.draft = { nonce: state.round.nonce, text: result.text || '', drawing: result.drawing || '' };
+    // 先把答案写回输入框，再走正常的提交校验 / 判分流程
     renderQuestion();
-    // 遥控器输入完成后直接把焦点放到“提交答案”
+    // 电视原生输入页点「确定」或按回车：直接提交，不必再点一次「提交答案」。
+    // 「取消」不会触发本回调；留空时 submit() 会给出「请先填写答案」提示。
+    if (result.submit) { submit(); return; }
+    // 语音 / 手写等其它输入方式仍允许先看一遍答案再手动提交
     if (isTv() && state.draft.text) { var list = focusables(); for (var i = 0; i < list.length; i++) if (list[i].getAttribute('data-action') === 'submit') { setFocus(i); break; } }
   };
   window.SOTV_UPDATE = function (info) { if (!info || !info.latest) return; window.currentUpdate = info;

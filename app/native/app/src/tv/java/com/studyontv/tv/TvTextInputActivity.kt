@@ -18,6 +18,7 @@ import org.json.JSONObject
 /**
  * 电视版填空 / 主观题作答页：网页里的输入框无法用遥控器打字，这里用原生输入框调出系统输入法，
  * 支持遥控器语音键（若电视装有语音识别）。方向键可在输入框和按钮之间移动。
+ * 点「确定」/回车后答案回传网页并直接提交，省掉再按一次「提交答案」的步骤。
  */
 class TvTextInputActivity : Activity() {
     private lateinit var edit: EditText
@@ -40,7 +41,7 @@ class TvTextInputActivity : Activity() {
             setPadding(0, (8 * dp).toInt(), 0, (12 * dp).toInt())
         }, LinearLayout.LayoutParams(-1, -2))
         edit = EditText(this).apply {
-            hint = "用遥控器或语音输入，按回车或选择“确定”完成"
+            hint = "输入答案后按回车或选择“确定”，将直接提交"
             // 不允许输入换行符：软键盘的回车键会变成「完成」并触发 IME action，
             // 这样在填空框里按回车就等于点击「确定」，而不会往答案里塞一个换行。
             // minLines 仍保留多行高度，长答案会按宽度自动折行显示。
@@ -106,7 +107,9 @@ class TvTextInputActivity : Activity() {
     private fun finishWith(save: Boolean) {
         if (delivered) return
         delivered = true
-        AnswerInput.complete(requestId, if (save) JSONObject().put("text", edit.text.toString()) else null)
+        // submit=true：网页收到答案后立即提交，不必再按一次「提交答案」
+        val result = if (save) JSONObject().put("text", edit.text.toString()).put("submit", true) else null
+        AnswerInput.complete(requestId, result)
         finish()
     }
 

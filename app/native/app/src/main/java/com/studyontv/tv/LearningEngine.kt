@@ -311,6 +311,26 @@ class LearningEngine(private val store: LocalStore) {
     private fun normalize(value: String): String = Normalizer.normalize(value.trim(), Normalizer.Form.NFKC)
         .lowercase(java.util.Locale.ROOT).replace(Regex("\\s+"), " ")
 
+    /**
+     * 参考答案是否为「英文类」客观答案：至少含一个 ASCII 字母/数字，且不含中日韩文字、
+     * 其它非拉丁文字或 emoji。全角字符先经 NFKC 归一，所以全角英文也算。
+     * 这类题目的拼写是唯一的，交给 AI 判等价表达反而容易误判，直接本地比对最可靠。
+     */
+    private fun latinReferenceAnswers(question: JSONObject): Boolean {
+        val answers = question.optJSONArray("answers") ?: return false
+        if (answers.length() == 0) return false
+        for (i in 0 until answers.length()) {
+            val value = Normalizer.normalize(answers.optString(i), Normalizer.Form.NFKC)
+            if (!value.any { (it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9') }) return false
+            // 0x2E80 起是 CJK 部首 / 假名 / 汉字 / 全角符号 / 其它文字与 emoji
+            if (value.any { it.code >= 0x2E80 }) return false
+        }
+        return true
+    }
+
+    /** 英文填空的完全匹配：忽略大小写、全半角以及所有空格差异（多空格、少空格、首尾空格） */
+    private fun exactIgnoringSpaces(value: String): String = normalize(value).replace(Regex("\\s+"), "")
+
     @Synchronized
     fun answer(input: JSONObject, verdict: Boolean? = null, quality: Int? = null): JSONObject {
         day()
@@ -327,10 +347,13 @@ class LearningEngine(private val store: LocalStore) {
             return JSONObject().put("blocked", st.getString("reason"))
         val question = round.getJSONObject("question")
         val type = question.optString("type", "single")
-        // 方案 B：开启 AI 批改时，填空题（text）也交给 AI 判分（按参考答案并允许等价表达），
-        // 不再走本地精确匹配——更宽容，适合音标拼写/中文近义。手动批改模式下仍走本地判分。
+        // 方案 B：开启 AI 批改时，填空题（text）默认交给 AI 判分（按参考答案并允许等价表达）。
+        // 例外：参考答案是英文/数字等拉丁字符的填空题，拼写唯一，不进 AI 队列，
+        // 直接本地完全匹配（忽略空格差异）；中文近义题仍由 AI 判，主观题/手写作答也照旧。
+        val localExact = type == "text" && latinReferenceAnswers(question)
         val aiGrading = GradingService.settings(store).getString("mode") == "ai"
-        if (verdict == null && (type == "subjective" || input.optString("drawing").isNotEmpty() || (type == "text" && aiGrading))) {
+        if (verdict == null && (type == "subjective" || input.optString("drawing").isNotEmpty() ||
+                (type == "text" && aiGrading && !localExact))) {
             require(input.optString("text").isNotBlank() || input.optString("drawing").isNotEmpty()) { "请先作答" }
             val drawing = input.optString("drawing")
             require(drawing.isEmpty() || (drawing.startsWith("data:image/png;base64,") && drawing.length <= 2000000)) { "手写图片格式不正确或过大" }
@@ -349,11 +372,14 @@ class LearningEngine(private val store: LocalStore) {
             return JSONObject().put("pending", true).put("reviewId", id).put("status", status())
         }
         val expected = if (type == "multiple") question.getJSONArray("correctIndices") else JSONArray().put(question.optInt("k"))
+        val accepted = question.optJSONArray("answers") ?: JSONArray()
         fun indices(array: JSONArray): Set<Int> = (0 until array.length()).map { array.getInt(it) }.toSet()
         val correct = if (verdict != null) verdict else if (type == "text") {
-            val value = normalize(input.optString("text"))
-            val accepted = question.getJSONArray("answers")
-            value.isNotEmpty() && (0 until accepted.length()).any { normalize(accepted.getString(it)) == value }
+            val value = if (localExact) exactIgnoringSpaces(input.optString("text")) else normalize(input.optString("text"))
+            value.isNotEmpty() && (0 until accepted.length()).any {
+                val candidate = if (localExact) exactIgnoringSpaces(accepted.getString(it)) else normalize(accepted.getString(it))
+                candidate == value
+            }
         } else {
             val selections = input.getJSONArray("selections")
             require(selections.length() > 0 && (0 until selections.length()).all { selections.getInt(it) in 0 until question.getJSONArray("a").length() }) { "请选择有效答案" }
@@ -396,7 +422,7 @@ class LearningEngine(private val store: LocalStore) {
             val extraEnabled = rules.optBoolean("extraEnabled", true)
             val finished = mode != "practice" && baseDone && (!passed || !extraEnabled || number("extra_pool") == 0L)
             val result = JSONObject().put("correct", correct).put("correctIndices", if (type == "text") JSONArray() else expected)
-                .put("answerText", if (type == "text") question.getJSONArray("answers").getString(0) else "")
+                .put("answerText", if (type == "text" && accepted.length() > 0) accepted.getString(0) else "")
                 .put("tip", question.optString("tip")).put("finished", finished).put("passed", finished && passed)
             if (finished) {
                 var grant = 0L
