@@ -255,6 +255,13 @@ class LocalStore(context: Context) : SQLiteOpenHelper(context, "studyontv.db", n
         if (input.has("weekSlots")) {
             val clean = normalizeWeek(input.optJSONArray("weekSlots")) ?: throw IllegalArgumentException("可用时段格式不正确")
             next.put("weekSlots", clean)
+        } else if (input.has("allDay") || input.has("windowStart") || input.has("windowEnd")) {
+            // 关键修复：仅改 allDay / 起止时间（后台“可用时段”面板常用做法）时，
+            // 必须依据这些字段重新生成 weekSlots 网格，否则沿用旧网格（首次默认全 1），
+            // 实际访问控制不会变化，设备始终“在可用时段内”，表现为后台保存后界面仍显示已解锁 / 可用。
+            val start = if (input.has("windowStart")) input.optString("windowStart") else next.optString("windowStart")
+            val end = if (input.has("windowEnd")) input.optString("windowEnd") else next.optString("windowEnd")
+            next.put("weekSlots", weekFromWindow(wantsAllDay, start, end))
         }
         if (input.has("holidayMode")) {
             require(input.getString("holidayMode") in listOf("sunday", "normal")) { "未知的节假日规则" }

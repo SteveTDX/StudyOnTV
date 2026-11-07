@@ -56,7 +56,9 @@ open class MainActivity : Activity() {
     override fun onStop() {
         super.onStop()
         MediaPause.release(this)
-        if (DeviceBridge.isTv(this) && ::web.isInitialized && !webReleased) {
+        // 原生填空页弹出时不要销毁 WebView：答案要经 evaluateJavascript 回填到这个页面，
+        // 一旦销毁，输入完按「确定」/ 回车得到的答案就送不回来（会报 call on a destroyed WebView）。
+        if (DeviceBridge.isTv(this) && !AnswerInput.active && ::web.isInitialized && !webReleased) {
             (web.parent as? android.view.ViewGroup)?.removeView(web)
             web.destroy()
             webReleased = true

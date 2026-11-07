@@ -8,11 +8,13 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * 版本检查：只使用蒲公英应用内更新接口（appKey + 当前版本）。
- * 不再访问 GitHub 或第三方镜像；蒲公英失败时由更新页引导用户手动下载。
+ * 版本检查：优先读取本仓库（fork）的 GitHub Release 与 main 分支 update.json，
+ * 家长在管理面板填写的自定义地址最优先；本仓库各来源都不可用时才回退蒲公英。
+ * 改 fork 时只需修改 OWNER_REPO，下面的网址、发版脚本与文档都随常量走。
  */
 object Updater {
-    const val OWNER_REPO = "chadyi/StudyOnTV"
+    const val OWNER_REPO = "SteveTDX/StudyOnTV"
+    const val RELEASE_PAGE = "https://github.com/$OWNER_REPO/releases/latest"
     private const val GITHUB_API = "https://api.github.com/repos/$OWNER_REPO/releases/latest"
     private const val MANIFEST_PATH = "$OWNER_REPO/main/update.json"
     private val MANIFEST_URLS = listOf(
@@ -43,9 +45,13 @@ object Updater {
             .map { if (it.endsWith("/")) it else "$it/" }.distinct()
     }
 
-    /** 可用的 APK 下载地址：上次成功的线路优先，其次直连，再其次各个镜像 */
-    fun downloadCandidates(ctx: Context, url: String): List<Pair<String, String>> =
-        listOf("蒲公英" to url)
+    /** 可用的 APK 下载地址：直连优先，其次家长在面板配置的加速镜像 */
+    fun downloadCandidates(ctx: Context, url: String): List<Pair<String, String>> {
+        val direct = if (url.contains("pgyer.com")) "蒲公英" else "直连"
+        val candidates = mutableListOf(direct to url)
+        mirrors(ctx).forEach { candidates += "镜像" to it + url }
+        return candidates
+    }
 
     fun check(ctx: Context, forceRefresh: Boolean = false, onResult: (Info?) -> Unit) {
         val cachedAt = Prefs.updateCheckedAt(ctx)
@@ -71,17 +77,52 @@ object Updater {
     fun checkNow(ctx: Context): Pair<Info?, JSONArray> {
         val log = JSONArray()
         val current = currentVersion(ctx)
-        val started = System.currentTimeMillis()
+        val code = currentVersionCode(ctx)
         var info: Info? = null
-        try {
-            info = Pgyer.info(ctx, current, currentVersionCode(ctx))
-            log.put(JSONObject().put("source", "蒲公英").put("ok", info != null).put("ms", System.currentTimeMillis() - started)
-                .put("message", if (info == null) "当前已是最新版本" else "v" + info.latest))
-        } catch (e: Exception) {
-            Diag.error("Update", "Pgyer check failed", e)
-            log.put(JSONObject().put("source", "蒲公英").put("ok", false).put("ms", System.currentTimeMillis() - started)
-                .put("message", e.message?.take(160) ?: e.javaClass.simpleName))
+
+        /** 返回 true 表示该来源给出了可用版本信息，无需再试后面的来源 */
+        fun trySource(source: String, block: () -> Info?): Boolean {
+            val started = System.currentTimeMillis()
+            return try {
+                val got = block()
+                val newer = got != null && isNewer(got.latest, current)
+                if (newer) info = got
+                val message = when {
+                    newer -> "v" + got?.latest.orEmpty()
+                    got != null -> "当前已是最新版本"
+                    else -> "该来源暂无可用版本"
+                }
+                log.put(JSONObject().put("source", source).put("ok", true)
+                    .put("ms", System.currentTimeMillis() - started).put("message", message))
+                got != null
+            } catch (e: Exception) {
+                Diag.error("Update", "$source check failed", e)
+                log.put(JSONObject().put("source", source).put("ok", false)
+                    .put("ms", System.currentTimeMillis() - started)
+                    .put("message", e.message?.take(160) ?: e.javaClass.simpleName))
+                false
+            }
         }
+
+        var done = false
+        val custom = api(ctx).trim()
+        if (custom.isNotEmpty()) done = trySource("自定义地址") {
+            fetch(custom)?.let { parse(it, current, "自定义地址") }
+        }
+        if (!done) done = trySource("GitHub Releases") {
+            fetch(GITHUB_API)?.let { parse(it, current, "GitHub Releases") }
+        }
+        if (!done) {
+            for (u in MANIFEST_URLS) {
+                if (trySource("update.json") { fetch(u)?.let { parse(it, current, "update.json") } }) {
+                    done = true
+                    break
+                }
+            }
+        }
+        // 本仓库暂未发版（404 / 网络不通）时，仍保留上游原有的蒲公英通道兜底
+        if (!done) trySource("蒲公英") { Pgyer.info(ctx, current, code) }
+
         Prefs.setUpdateInfo(ctx, info?.let { toJson(it).toString() } ?: "")
         Prefs.setUpdateCheckedAt(ctx, System.currentTimeMillis())
         Prefs.setUpdateLog(ctx, JSONObject().put("at", System.currentTimeMillis()).put("items", log).toString())

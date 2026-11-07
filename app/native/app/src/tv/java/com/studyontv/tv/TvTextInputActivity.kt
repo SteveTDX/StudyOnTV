@@ -40,14 +40,25 @@ class TvTextInputActivity : Activity() {
             setPadding(0, (8 * dp).toInt(), 0, (12 * dp).toInt())
         }, LinearLayout.LayoutParams(-1, -2))
         edit = EditText(this).apply {
-            hint = "用遥控器或语音输入，完成后选择“确定”"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            hint = "用遥控器或语音输入，按回车或选择“确定”完成"
+            // 不允许输入换行符：软键盘的回车键会变成「完成」并触发 IME action，
+            // 这样在填空框里按回车就等于点击「确定」，而不会往答案里塞一个换行。
+            // minLines 仍保留多行高度，长答案会按宽度自动折行显示。
+            inputType = InputType.TYPE_CLASS_TEXT
             imeOptions = EditorInfo.IME_ACTION_DONE or EditorInfo.IME_FLAG_NO_EXTRACT_UI
             minLines = 2; maxLines = 5; gravity = Gravity.TOP or Gravity.START
             TvUi.field(this)
             setText(savedInstanceState?.getString("draft") ?: intent.getStringExtra("draft").orEmpty())
             setSelection(text.length)
-            setOnEditorActionListener { _, action, _ -> if (action == EditorInfo.IME_ACTION_DONE) { finishWith(true); true } else false }
+            // 软键盘 / 输入法发出的「完成 / 回车」一律当作「确定」提交
+            setOnEditorActionListener { _, action, event ->
+                val enterKey = event?.keyCode == KeyEvent.KEYCODE_ENTER || event?.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+                if (action == EditorInfo.IME_ACTION_DONE || action == EditorInfo.IME_ACTION_GO ||
+                    action == EditorInfo.IME_ACTION_SEND || action == EditorInfo.IME_ACTION_SEARCH ||
+                    action == EditorInfo.IME_ACTION_NEXT || enterKey) {
+                    finishWith(true); true
+                } else false
+            }
         }
         root.addView(edit, LinearLayout.LayoutParams(-1, -2).apply { topMargin = (8 * dp).toInt() })
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
@@ -66,6 +77,14 @@ class TvTextInputActivity : Activity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // 遥控器的语音键 / 搜索键直接进入语音输入
         if (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_SEARCH || event.keyCode == KeyEvent.KEYCODE_VOICE_ASSIST)) { voice(); return true }
+        // 填空框有焦点时，实体键盘 / 外接键盘的回车键 = 点击「确定」。
+        // DOWN 与 UP 都消费掉，避免抬起事件在答案里插入换行；组合键（Shift/Ctrl/Alt）不拦截。
+        if (::edit.isInitialized && edit.hasFocus() &&
+            (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER) &&
+            !event.isShiftPressed && !event.isCtrlPressed && !event.isAltPressed) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) finishWith(true)
+            return true
+        }
         return super.dispatchKeyEvent(event)
     }
 

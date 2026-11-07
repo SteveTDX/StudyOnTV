@@ -97,6 +97,9 @@ class LanServer(
                 val out = c.getOutputStream()
                 if (method == "OPTIONS") return reply(out, 204, null, null)
                 val local = c.inetAddress?.isLoopbackAddress ?: false
+                // 没有尾斜杠时，页面里的相对资源路径会解析到 /assets/ 而非 /admin/assets/，
+                // 导致后台 JS/CSS 全部 404、页面空白。这里统一 302 到带斜杠的地址。
+                if (path == "/admin") return redirect(out, "/admin/")
                 route(method, path, query, headers, body, out, local)
             } catch (e: Exception) {
                 
@@ -150,9 +153,9 @@ class LanServer(
                     .put("ip", localIp() ?: "")
                     .put("port", boundPort)
                     .put("questions", store.countQuestions())
-                    .put("needsToken", true)
-                    .put("passwordRequired", true)
-                return json(out, 200, info)
+                .put("needsToken", true)
+                .put("passwordRequired", true)
+            return json(out, 200, info)
             }
             path == "/api/state" && method == "GET" -> {
                 DeviceRuntime.learning.flushUsage()
@@ -176,7 +179,11 @@ class LanServer(
             }
             path == "/api/config" && method == "PUT" -> {
                 val input = try { JSONObject(body) } catch (e: Exception) { return json(out, 200, err("bad_json")) }
-                return json(out, 200, JSONObject().put("config", store.saveConfig(input)))
+                // 保存后立即让运行中的门禁/悬浮层重新评估，使新规则当帧生效，
+                // 不必等下一秒轮询；与 /api/remote 的处理保持一致。
+                val saved = store.saveConfig(input)
+                GateService.refreshNow()
+                return json(out, 200, JSONObject().put("config", saved))
             }
             path == "/api/questions/generate" && method == "POST" -> {
                 val input = try { JSONObject(body.ifEmpty { "{}" }) } catch (e: Exception) { return json(out, 200, err("bad_json")) }
@@ -387,6 +394,15 @@ class LanServer(
     
     private fun json(out: OutputStream, code: Int, obj: JSONObject) =
         reply(out, code, "application/json; charset=utf-8", obj.toString().toByteArray())
+
+    private fun redirect(out: OutputStream, location: String) {
+        val head = "HTTP/1.1 302 Found\r\n" +
+            "Location: $location\r\n" +
+            "Connection: close\r\n" +
+            "Content-Length: 0\r\n\r\n"
+        out.write(head.toByteArray(Charsets.UTF_8))
+        out.flush()
+    }
 
     private fun err(code: String) = JSONObject().put("error", code)
 

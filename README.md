@@ -6,20 +6,22 @@
 
 **Learn first. Watch later.** · 支持Android 平板、手机和电视，不需要自建服务器
 
-[![Stars](https://img.shields.io/github/stars/chadyi/StudyOnTV?style=for-the-badge&logo=github&label=Stars)](https://github.com/chadyi/StudyOnTV/stargazers)
-[![Release](https://img.shields.io/github/v/release/chadyi/StudyOnTV?style=for-the-badge&label=Release)](https://github.com/chadyi/StudyOnTV/releases/latest)
-[![Platform](https://img.shields.io/badge/Android-5.0%2B-3DDC84?style=for-the-badge&logo=android)](https://github.com/chadyi/StudyOnTV)
+[![Stars](https://img.shields.io/github/stars/SteveTDX/StudyOnTV?style=for-the-badge&logo=github&label=Stars)](https://github.com/SteveTDX/StudyOnTV/stargazers)
+[![Release](https://img.shields.io/github/v/release/SteveTDX/StudyOnTV?style=for-the-badge&label=Release)](https://github.com/SteveTDX/StudyOnTV/releases/latest)
+[![Platform](https://img.shields.io/badge/Android-5.0%2B-3DDC84?style=for-the-badge&logo=android)](https://github.com/SteveTDX/StudyOnTV)
 [![License](https://img.shields.io/badge/license-Personal%20Use%20Only-orange?style=for-the-badge)](./LICENSE)
 
 </div>
 
 ---
 
+> **关于本仓库**：这是 [chadyi/StudyOnTV](https://github.com/chadyi/StudyOnTV) 的个人定制 fork，在当前版本基础上修复了若干问题，并把版本检查指向本仓库。完整改动见文末「本 fork 的修订」；上游最新版另存于 `upstream-v0.3.17` 分支。
+
 ## 安装
 
 Android 平板、手机和电视使用同一套规则，分别安装对应版本：
 
-- [**手机/平板/TV GitHub 下载（首选）**](https://github.com/chadyi/StudyOnTV/releases/latest)
+- [**手机/平板/TV GitHub 下载（首选）**](https://github.com/SteveTDX/StudyOnTV/releases/latest)
 
 如果无法访问 GitHub，可使用蒲公英备用下载：
 
@@ -167,6 +169,49 @@ A：题库可以在手机管理页导出 JSON，换电视后重新导入。
 | 手机管理页 | React + shadcn/ui |
 | 本地存储 | SQLite（Android 内置） |
 | 局域网通信 | Kotlin ServerSocket，HTTP/1.1 |
+
+---
+
+## 本 fork 的修订
+
+本仓库 fork 自 [chadyi/StudyOnTV](https://github.com/chadyi/StudyOnTV)，基于上游 **v0.3.9（versionCode 14）** 做个人家庭定制。上游最新版本另存于 [`upstream-v0.3.17`](https://github.com/SteveTDX/StudyOnTV/tree/upstream-v0.3.17) 分支，便于以后对照合并。改动仅限个人家庭使用，遵循原项目 License。
+
+### 修订清单
+
+| # | 修订 | 涉及文件 | 说明 |
+|---|---|---|---|
+| 1 | 答题翻页死循环 | `LearningEngine.kt` | 修复答完一题又回到第一题的循环（提交 `7ef73a5`） |
+| 2 | 规则保存即时生效 | `LocalStore.kt`、`LanServer.kt`、`app/web/assets/js/app.js` | 后台只改「全天可用 / 起止时间」时重建 `weekSlots` 网格；保存后立即 `GateService.refreshNow()`；前端在任意界面检测到配置版本变化即刷新门禁与主题 |
+| 3 | 填空框回车 = 确定 | `TvTextInputActivity.kt`、`app/web/assets/js/app.js` | TV 原生「填写答案」页按软键盘或实体键盘回车即完成，不再插入换行；手机 / 电脑的可编辑填空框回车直接提交答案（Shift 组合与输入法组词不拦截） |
+| 4 | 修复 TV 输入答案回填丢失 | `MainActivity.kt` | TV 上 `onStop()` 原本无条件销毁 WebView，原生输入页返回时答案无法回填；改为仅在非输入页场景销毁 |
+| 5 | 更新检查指向本仓库 | `Updater.kt`、`UpdateActivity.kt`、`scripts/make-update-manifest.mjs`、`docs/*`、管理页、README | 检查顺序：自定义地址 → 本仓库 Release API → 本仓库 `update.json` → 蒲公英兜底；「手动下载」与发版脚本地址一并改为本仓库 |
+| 6 | 隐私清理 | `.gitignore` 等 | 仓库不含真实设备地址、管理密码、会话令牌、本地绝对路径、调试日志与自建题库；新增忽略规则防止误提交 |
+
+### 自动更新指向
+
+`Updater.OWNER_REPO` 统一指向 `SteveTDX/StudyOnTV`，改 fork 只需改这一处常量：
+
+- Release API：`https://api.github.com/repos/SteveTDX/StudyOnTV/releases/latest`
+- 更新清单：`https://raw.githubusercontent.com/SteveTDX/StudyOnTV/main/update.json`（及 jsDelivr 镜像）
+- 手动下载 / 首页徽章：`https://github.com/SteveTDX/StudyOnTV/releases/latest`
+
+发版与检查顺序详见 [docs/update.md](./docs/update.md)。
+
+### 构建与签名
+
+```bash
+export ANDROID_HOME=<Android SDK 路径>
+cd app/native
+./gradlew assembleTvDebug       # TV 版；assembleMobileDebug 为手机版
+```
+
+正式安装需自行签名。若签名与设备既有版本不一致，覆盖安装会失败，需先卸载（会清空本机题库、规则与学习记录，请先导出）。
+
+### 验证与隐私说明
+
+上述修订已在 Android TV 模拟器与实体电视上完成端到端验证：规则保存后当帧生效、回车提交与答案回填、答完自动进入下一题、后台管理页可正常访问。
+
+**本仓库不包含任何真实设备的网络地址、管理密码、会话令牌、设备标识或本地文件绝对路径。** 文档里出现的 `192.168.x.x` 均为上游原有的示例地址；更新兜底所用的蒲公英 appKey 是上游公开代码中的第三方服务标识，不是账户密钥。自建题库属于设备端数据，通过管理面板导入，不随源码分发。
 
 ---
 

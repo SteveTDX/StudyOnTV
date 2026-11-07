@@ -20,6 +20,7 @@ node_modules/
 /app/native/app/src/main/assets/web/
 /app/native/app/src/main/assets/admin/
 /app/native/app/src/main/assets/questions.json
+/app/native/app/src/main/assets/holidays/
 StudyOnTV-*.apk
 *.idsig
 *.jks
@@ -33,3 +34,8 @@ studyontv-release.jks
 .kotlin/
 
 /release-artifacts/
+
+# 本地调试资料与隐私数据（设备地址、日志、会话令牌、自建题库等），绝不入库
+.workbuddy/
+*.db
+*.bak

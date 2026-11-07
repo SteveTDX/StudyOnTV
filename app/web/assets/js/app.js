@@ -121,6 +121,13 @@
         // 遥控器无法直接在网页输入框里打字：按 OK 打开原生输入框（可调出系统输入法 / 语音）
         input.readOnly = true; input.className += ' focusable'; input.setAttribute('data-action', 'type-answer');
         input.placeholder = '按 OK 键输入答案';
+      } else {
+        // 可编辑的填空框里按回车 = 点击「提交答案」。
+        // Shift/Ctrl/Alt+回车、输入法组词中的回车都不拦截，仍可换行 / 正常选词。
+        input.onkeydown = function (ev) {
+          if (ev.keyCode !== 13 || ev.shiftKey || ev.ctrlKey || ev.altKey || ev.metaKey || ev.isComposing) return;
+          ev.preventDefault(); submit();
+        };
       }
       options.appendChild(input);
       var tools = document.createElement('div'); tools.className = 'input-tools';
@@ -455,7 +462,13 @@
           return;
         }
         if (state.screen === 'quiz' && state.learning.reason && ['quota','rounds','schedule'].indexOf(state.learning.reason) >= 0 && state.config.playMode !== 'practice') lock(state.learning.reason);
-        else if (version !== state.config.version && state.screen === 'quiz') start();
+        else if (version !== state.config.version) {
+          // 后台保存规则后版本号会自增：无论当前在哪个界面，都立即套用新配置，
+          // 不必等下一次进入答题页才生效。
+          applyTheme(state.config.theme); pill();
+          if (state.screen === 'quiz') start();
+          else if (state.screen === 'lock' && !state.learning.free) lock(state.learning.reason || 'timeup');
+        }
       });
     }, 2000);
   }

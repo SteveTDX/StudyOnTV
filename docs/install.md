@@ -2,7 +2,7 @@
 
 ## 安装到手机或平板
 
-优先从 [GitHub Release](https://github.com/chadyi/StudyOnTV/releases/latest) 下载对应设备的正式 APK。无法访问 GitHub 时，可使用蒲公英备用入口：[手机 / 平板](https://www.pgyer.com/StudyOnTVMobile)、[TV](https://www.pgyer.com/StudyOnTVTV)。手机和平板直接打开 APK 安装，允许当前下载工具安装应用。手机默认竖屏，平板支持横竖屏；电视支持遥控器。
+优先从 [GitHub Release](https://github.com/SteveTDX/StudyOnTV/releases/latest) 下载对应设备的正式 APK。无法访问 GitHub 时，可使用蒲公英备用入口：[手机 / 平板](https://www.pgyer.com/StudyOnTVMobile)、[TV](https://www.pgyer.com/StudyOnTVTV)。手机和平板直接打开 APK 安装，允许当前下载工具安装应用。手机默认竖屏，平板支持横竖屏；电视支持遥控器。
 
 首次打开先设置管理密码，随后可按需开启权限；不开权限也能进入家长设置或学习。电视无法开启无障碍时，可以使用悬浮窗管理。在另一台家长设备上扫码，输入管理密码连接。受控设备本身也可以通过连续点击标题 5 次，或短按遥控器「上」5 次，再输入密码重新打开连接页。
 
@@ -58,7 +58,7 @@
 帮我在这台电视上安装 StudyOnTV。ADB 调试已经开好了。
 电视 IP：<填>
 
-1. 优先从 https://github.com/chadyi/StudyOnTV/releases/latest 下载 TV APK；无法访问时再从 https://www.pgyer.com/StudyOnTVTV 下载
+1. 优先从 https://github.com/SteveTDX/StudyOnTV/releases/latest 下载 TV APK；无法访问时再从 https://www.pgyer.com/StudyOnTVTV 下载
 2. adb connect <IP>:5555，然后 adb devices 确认设备出现；
    没出现就等我到电视上点「允许」，还是不行再告诉我怎么处理
 3. adb install -r <刚下载的 apk>

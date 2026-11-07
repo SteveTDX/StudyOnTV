@@ -18,7 +18,7 @@ const versionCode=Number(gradle.match(/versionCode\s*=\s*(\d+)/)?.[1]);
 if(!version)throw new Error('build.gradle.kts 里找不到 versionName');
 const files=readdirSync(dir).filter(f=>f.endsWith(`-v${version}.apk`));
 const pick=marker=>files.find(f=>f.includes(marker));
-const asset=name=>{if(!name)return undefined;const path=join(dir,name);return{name,url:`https://github.com/chadyi/StudyOnTV/releases/download/v${version}/${name}`,sha256:createHash('sha256').update(readFileSync(path)).digest('hex'),size:statSync(path).size};};
+const asset=name=>{if(!name)return undefined;const path=join(dir,name);return{name,url:`https://github.com/SteveTDX/StudyOnTV/releases/download/v${version}/${name}`,sha256:createHash('sha256').update(readFileSync(path)).digest('hex'),size:statSync(path).size};};
 const assets={tv:asset(pick('-TV-')),mobile:asset(pick('-Mobile-'))};
 if(!assets.tv&&!assets.mobile)throw new Error(`${dir} 里没有 *-TV-v${version}.apk / *-Mobile-v${version}.apk`);
 const manifest={version,versionCode,force:force||notes.includes('[force]'),notes,publishedAt:new Date().toISOString(),assets};
