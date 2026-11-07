@@ -1,0 +1,15 @@
+{
+  "version": "0.3.10",
+  "versionCode": 15,
+  "force": false,
+  "notes": "v0.3.10：版本检查仅使用本仓库 Release 与 update.json，移除第三方更新通道与上游仓库链接；多网卡时生成多个管理地址与二维码；保留规则即时生效、填空回车提交、TV 答案回填修复，以及 AI 批改模式下的填空判分。",
+  "publishedAt": "2026-11-07T08:49:20.065Z",
+  "assets": {
+    "tv": {
+      "name": "StudyOnTV-TV-v0.3.10.apk",
+      "url": "https://github.com/SteveTDX/StudyOnTV/releases/download/v0.3.10/StudyOnTV-TV-v0.3.10.apk",
+      "sha256": "d07bf2f4e6fbd02f87b4b32547ac0ba66c73b1bc05f5ad8f83987d93664d6911",
+      "size": 1818799
+    }
+  }
+}

@@ -174,7 +174,7 @@ class UpdateActivity : Activity() {
                 } else {
                     button.isEnabled = true
                     button.text = "下载失败，重试"
-                    status.text = (ApkInstaller.lastError.ifEmpty { "下载失败，请检查网络" }) + "。也可以点「手动下载」到蒲公英安装。"
+                    status.text = (ApkInstaller.lastError.ifEmpty { "下载失败，请检查网络" }) + "。也可以点「手动下载」到本仓库 Release 页手动安装。"
                     progress?.visibility = View.GONE
                 }
                 button.requestFocus()

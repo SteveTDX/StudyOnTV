@@ -8,8 +8,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * 版本检查：优先读取本仓库（fork）的 GitHub Release 与 main 分支 update.json，
- * 家长在管理面板填写的自定义地址最优先；本仓库各来源都不可用时才回退蒲公英。
+ * 版本检查：只读取本仓库（fork）的 GitHub Release 与 main 分支 update.json，
+ * 家长在管理面板填写的自定义地址最优先；不回退任何第三方更新通道。
  * 改 fork 时只需修改 OWNER_REPO，下面的网址、发版脚本与文档都随常量走。
  */
 object Updater {
@@ -47,8 +47,7 @@ object Updater {
 
     /** 可用的 APK 下载地址：直连优先，其次家长在面板配置的加速镜像 */
     fun downloadCandidates(ctx: Context, url: String): List<Pair<String, String>> {
-        val direct = if (url.contains("pgyer.com")) "蒲公英" else "直连"
-        val candidates = mutableListOf(direct to url)
+        val candidates = mutableListOf("直连" to url)
         mirrors(ctx).forEach { candidates += "镜像" to it + url }
         return candidates
     }
@@ -77,7 +76,6 @@ object Updater {
     fun checkNow(ctx: Context): Pair<Info?, JSONArray> {
         val log = JSONArray()
         val current = currentVersion(ctx)
-        val code = currentVersionCode(ctx)
         var info: Info? = null
 
         /** 返回 true 表示该来源给出了可用版本信息，无需再试后面的来源 */
@@ -120,9 +118,7 @@ object Updater {
                 }
             }
         }
-        // 本仓库暂未发版（404 / 网络不通）时，仍保留上游原有的蒲公英通道兜底
-        if (!done) trySource("蒲公英") { Pgyer.info(ctx, current, code) }
-
+        // 不再回退任何第三方更新通道；所有来源都不可用时这次检查即无结果
         Prefs.setUpdateInfo(ctx, info?.let { toJson(it).toString() } ?: "")
         Prefs.setUpdateCheckedAt(ctx, System.currentTimeMillis())
         Prefs.setUpdateLog(ctx, JSONObject().put("at", System.currentTimeMillis()).put("items", log).toString())

@@ -327,7 +327,10 @@ class LearningEngine(private val store: LocalStore) {
             return JSONObject().put("blocked", st.getString("reason"))
         val question = round.getJSONObject("question")
         val type = question.optString("type", "single")
-        if (verdict == null && (type == "subjective" || input.optString("drawing").isNotEmpty())) {
+        // 方案 B：开启 AI 批改时，填空题（text）也交给 AI 判分（按参考答案并允许等价表达），
+        // 不再走本地精确匹配——更宽容，适合音标拼写/中文近义。手动批改模式下仍走本地判分。
+        val aiGrading = GradingService.settings(store).getString("mode") == "ai"
+        if (verdict == null && (type == "subjective" || input.optString("drawing").isNotEmpty() || (type == "text" && aiGrading))) {
             require(input.optString("text").isNotBlank() || input.optString("drawing").isNotEmpty()) { "请先作答" }
             val drawing = input.optString("drawing")
             require(drawing.isEmpty() || (drawing.startsWith("data:image/png;base64,") && drawing.length <= 2000000)) { "手写图片格式不正确或过大" }

@@ -4,11 +4,11 @@ An Android learning and screen-time app for tablets, phones and TVs. Tablets and
 
 This project is linked with and endorses the [LINUX DO](https://linux.do) community.
 
-> **Fork notice:** This is a personal fork of [chadyi/StudyOnTV](https://github.com/chadyi/StudyOnTV) with local fixes, multi-network-address pairing (one admin URL + QR code per IP), and a self-hosted update source. See the [Chinese README](./README.md) ("本 fork 的修订") for the full change log.
+> **Fork notice:** This is a personal fork of the upstream StudyOnTV project by chadyi with local fixes, multi-network-address pairing (one admin URL + QR code per IP), and a self-hosted update source. See the [Chinese README](./README.md) ("本 fork 的修订") for the full change log.
 
 [Download from GitHub Release](https://github.com/SteveTDX/StudyOnTV/releases/latest) · [中文说明](./README.md) · [Installation](./docs/install.md)
 
-If GitHub is unavailable, use the Pgyer backup: [Mobile / tablet](https://www.pgyer.com/StudyOnTVMobile) · [TV](https://www.pgyer.com/StudyOnTVTV).
+Releases are published only in this repository; no third-party download or update channel is used.
 
 ## Learning
 
@@ -57,7 +57,7 @@ Android boot, supported quick-boot broadcasts and package replacement can restar
 
 Thanks to **xiuweng** on LINUX DO for mobile control, the hidden management entry and persistent extra practice; and to **free-swimming** for star difficulty and different time rewards.
 
-Suggestions from [#2](https://github.com/chadyi/StudyOnTV/issues/2) improved password changes, AI presets, question-bank management and lazy loading. [#3](https://github.com/chadyi/StudyOnTV/issues/3) led to inline answer feedback and manual continuation; [#4](https://github.com/chadyi/StudyOnTV/issues/4) informed control-hour schedules, optional uninstall protection and stronger background-audio handling. [#5](https://github.com/chadyi/StudyOnTV/issues/5) prompted clearer boot-startup guidance.
+Suggestions from #2 improved password changes, AI presets, question-bank management and lazy loading. #3 led to inline answer feedback and manual continuation; #4 informed control-hour schedules, optional uninstall protection and stronger background-audio handling. #5 prompted clearer boot-startup guidance.
 
 ## License
 

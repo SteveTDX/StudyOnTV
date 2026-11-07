@@ -1,6 +1,6 @@
 # 版本检查与更新提示
 
-客户端回到学习页时按顺序检查更新源，**有新版才提示**，结果缓存 6 小时。检查源全部指向本仓库（fork）；本仓库暂未发版或 GitHub 不通时，回退到蒲公英通道（见下文「检查顺序与备用来源」）。
+客户端回到学习页时按顺序检查更新源，**有新版才提示**，结果缓存 6 小时。检查源全部指向本仓库（fork），不使用任何第三方通道，也不访问上游仓库；所有来源都不可用时本次检查无结果，下次启动或 6 小时后再试。
 
 ```
 GET https://api.github.com/repos/SteveTDX/StudyOnTV/releases/latest
@@ -51,11 +51,13 @@ gh release create v0.3.10 <tv.apk> <mobile.apk> \
 1. 家长在管理面板「规则与设备 → 版本更新 → 高级」里填写的自定义地址（GitHub Release JSON 或 update.json 格式）
 2. 本仓库的 GitHub Releases API
 3. 本仓库 main 分支的 `update.json`：raw.githubusercontent.com → cdn / fastly / gcore.jsdelivr.net
-4. 以上都不可用（尚未发版、GitHub 不通）时，回退上游原有的蒲公英检查通道
+4. 以上都不可用时本次检查即结束，不回退任何第三方通道
 
 APK 下载依次尝试：直连下载地址 → 家长在面板配置的加速镜像。
 镜像是第三方服务，所以下载后会校验 SHA-256（GitHub API 的 `digest` 或 update.json 中的 `sha256`），
 并要求 APK 签名与已安装版本一致，否则拒绝安装。「手动下载」按钮打开本仓库的 Release 页面。
+
+当前 TV 包使用本机 debug keystore 签名，与已安装版本一致，可直接覆盖安装并保留题库、规则与学习记录；若更换签名密钥则需先卸载。
 
 ### 发版时生成 update.json
 

@@ -72,7 +72,7 @@ object ApkInstaller {
                 connectTimeout = 8000
                 readTimeout = 15000
                 instanceFollowRedirects = true
-                setRequestProperty("User-Agent", Pgyer.USER_AGENT)
+                setRequestProperty("User-Agent", "StudyOnTV-Updater")
             }
             if (conn.responseCode !in 200..299) { lastError = "下载失败（HTTP ${conn.responseCode}）"; return null }
             val total = conn.getHeaderField("Content-Length")?.toLongOrNull() ?: -1L

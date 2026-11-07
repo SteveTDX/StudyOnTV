@@ -15,18 +15,15 @@
 
 ---
 
-> **关于本仓库**：这是 [chadyi/StudyOnTV](https://github.com/chadyi/StudyOnTV) 的个人定制 fork，在当前版本基础上修复了若干问题，并把版本检查指向本仓库。完整改动见文末「本 fork 的修订」；上游最新版另存于 `upstream-v0.3.17` 分支。
+> **关于本仓库**：这是上游 StudyOnTV（原作者 chadyi）的个人定制 fork，在当前版本基础上修复了若干问题，并把版本检查指向本仓库。完整改动见文末「本 fork 的修订」；上游最新版另存于 `upstream-v0.3.17` 分支。
 
 ## 安装
 
 Android 平板、手机和电视使用同一套规则，分别安装对应版本：
 
-- [**手机/平板/TV GitHub 下载（首选）**](https://github.com/SteveTDX/StudyOnTV/releases/latest)
+- [**手机/平板/TV GitHub 下载（唯一发布渠道）**](https://github.com/SteveTDX/StudyOnTV/releases/latest)
 
-如果无法访问 GitHub，可使用蒲公英备用下载：
-
-- **[手机 / 平板版 · 蒲公英备用下载](https://www.pgyer.com/StudyOnTVMobile)**
-- **[TV 版 · 蒲公英备用下载](https://www.pgyer.com/StudyOnTVTV)**
+本仓库只在自己的 Releases 发布版本，不提供任何第三方备用下载，也不从上游仓库或源库地址检查更新。
 
 手机和平板直接下载安装；电视可通过 U 盘或 ADB 安装。首次打开设置管理密码，权限可以按需开启，也可以稍后再设置。
 
@@ -174,7 +171,7 @@ A：题库可以在手机管理页导出 JSON，换电视后重新导入。
 
 ## 本 fork 的修订
 
-本仓库 fork 自 [chadyi/StudyOnTV](https://github.com/chadyi/StudyOnTV)，基于上游 **v0.3.9（versionCode 14）** 做个人家庭定制。上游最新版本另存于 [`upstream-v0.3.17`](https://github.com/SteveTDX/StudyOnTV/tree/upstream-v0.3.17) 分支，便于以后对照合并。改动仅限个人家庭使用，遵循原项目 License。
+本仓库 fork 自上游 StudyOnTV（原作者 chadyi），基于 **v0.3.9（versionCode 14）** 做个人家庭定制。上游最新版本另存于 [`upstream-v0.3.17`](https://github.com/SteveTDX/StudyOnTV/tree/upstream-v0.3.17) 分支，便于以后对照合并。改动仅限个人家庭使用，遵循原项目 License。
 
 ### 修订清单
 
@@ -184,9 +181,10 @@ A：题库可以在手机管理页导出 JSON，换电视后重新导入。
 | 2 | 规则保存即时生效 | `LocalStore.kt`、`LanServer.kt`、`app/web/assets/js/app.js` | 后台只改「全天可用 / 起止时间」时重建 `weekSlots` 网格；保存后立即 `GateService.refreshNow()`；前端在任意界面检测到配置版本变化即刷新门禁与主题 |
 | 3 | 填空框回车 = 确定 | `TvTextInputActivity.kt`、`app/web/assets/js/app.js` | TV 原生「填写答案」页按软键盘或实体键盘回车即完成，不再插入换行；手机 / 电脑的可编辑填空框回车直接提交答案（Shift 组合与输入法组词不拦截） |
 | 4 | 修复 TV 输入答案回填丢失 | `MainActivity.kt` | TV 上 `onStop()` 原本无条件销毁 WebView，原生输入页返回时答案无法回填；改为仅在非输入页场景销毁 |
-| 5 | 更新检查指向本仓库 | `Updater.kt`、`UpdateActivity.kt`、`scripts/make-update-manifest.mjs`、`docs/*`、管理页、README | 检查顺序：自定义地址 → 本仓库 Release API → 本仓库 `update.json` → 蒲公英兜底；「手动下载」与发版脚本地址一并改为本仓库 |
+| 5 | 更新检查指向本仓库 | `Updater.kt`、`UpdateActivity.kt`、`scripts/make-update-manifest.mjs`、`docs/*`、管理页、README | 检查顺序：自定义地址 → 本仓库 Release API → 本仓库 `update.json`；「手动下载」与发版脚本地址一并改为本仓库；v0.3.10 起彻底移除第三方兜底与上游链接 |
 | 6 | 隐私清理 | `.gitignore` 等 | 仓库不含真实设备地址、管理密码、会话令牌、本地绝对路径、调试日志与自建题库；新增忽略规则防止误提交 |
 | 7 | 多网卡多管理地址 / 多二维码 | `NetworkAddresses.kt`、`LanServer.kt`、`DeviceRuntime.kt`、`app/web/*`、`admin/assets/index-*.js`、`docs/*` | 设备同时有 WiFi / 网线 / 热点 / VPN 多个地址时，连接页列出全部管理地址并为每个地址生成对应二维码（标注网卡来源），地址随网络变化自动刷新；`/api/hello`、`/api/device` 增加 `ips`、`urls`、`addresses` 字段，后台「设备」页显示多个 IP；单地址时保持原样 |
+| 8 | 发布与更新源收敛到本仓库 | `Updater.kt`、`build.gradle.kts`、`update.json`、README、docs、`admin/assets/*` | 发布 v0.3.10（versionCode 15）与 `update.json`，检查更新只走本仓库 Release API / 清单；删除第三方更新实现与所有上游仓库链接，保留 LICENSE 版权声明 |
 
 ### 自动更新指向
 
@@ -196,7 +194,7 @@ A：题库可以在手机管理页导出 JSON，换电视后重新导入。
 - 更新清单：`https://raw.githubusercontent.com/SteveTDX/StudyOnTV/main/update.json`（及 jsDelivr 镜像）
 - 手动下载 / 首页徽章：`https://github.com/SteveTDX/StudyOnTV/releases/latest`
 
-发版与检查顺序详见 [docs/update.md](./docs/update.md)。
+所有地址均指向本仓库，不再回退第三方通道，也不访问源仓库。发版与检查顺序详见 [docs/update.md](./docs/update.md)。
 
 ### 构建与签名
 
@@ -212,7 +210,7 @@ cd app/native
 
 上述修订已在 Android TV 模拟器与实体电视上完成端到端验证：规则保存后当帧生效、回车提交与答案回填、答完自动进入下一题、后台管理页可正常访问、多网卡时连接页生成多个地址与二维码。
 
-**本仓库不包含任何真实设备的网络地址、管理密码、会话令牌、设备标识或本地文件绝对路径。** 文档里出现的 `192.168.x.x` 均为上游原有的示例地址；更新兜底所用的蒲公英 appKey 是上游公开代码中的第三方服务标识，不是账户密钥。自建题库属于设备端数据，通过管理面板导入，不随源码分发。
+**本仓库不包含任何真实设备的网络地址、管理密码、会话令牌、设备标识或本地文件绝对路径。** 文档里出现的 `192.168.x.x` 均为上游原有的示例地址；仓库也不含任何第三方更新服务标识。自建题库属于设备端数据，通过管理面板导入，不随源码分发。
 
 ---
 
@@ -220,10 +218,10 @@ cd app/native
 
 - [LINUX DO](https://linux.do) **xiuweng**：支持手机管控、通过隐藏手势重新打开管理入口，以及答错后累计加练、重启保留加练池。
 - [LINUX DO](https://linux.do) **free-swimming**：设置题目星级难度，并为不同难度配置不同的时长奖励。
-- **[Issue #2](https://github.com/chadyi/StudyOnTV/issues/2)**：补充修改密码、AI 服务预设与连接测试，改进题库管理，图表与公式按需加载。
-- **[Issue #3](https://github.com/chadyi/StudyOnTV/issues/3)**：答题结果放在题目下方，显示正确答案、解析与鼓励语，由孩子手动继续；加强后台音频处理。
-- **[Issue #4](https://github.com/chadyi/StudyOnTV/issues/4)**：区分可用时段与答题管控时段，增加自由时段、可选防卸载和音频静音兜底。
-- **[Issue #5](https://github.com/chadyi/StudyOnTV/issues/5)**：补充开机启动说明。
+- **Issue #2**：补充修改密码、AI 服务预设与连接测试，改进题库管理，图表与公式按需加载。
+- **Issue #3**：答题结果放在题目下方，显示正确答案、解析与鼓励语，由孩子手动继续；加强后台音频处理。
+- **Issue #4**：区分可用时段与答题管控时段，增加自由时段、可选防卸载和音频静音兜底。
+- **Issue #5**：补充开机启动说明。
 
 这些建议也延伸到其他端，欢迎反馈使用体验。
 
@@ -235,4 +233,4 @@ cd app/native
 
 源码可查阅，**仅限个人家庭使用**，禁止商业用途和二次分发。欢迎 Issue 反馈问题。
 
-商业授权请通过 [GitHub Issues](https://github.com/chadyi/StudyOnTV/issues) 联系作者。
+商业授权请联系原作者（见 [LICENSE](./LICENSE)）。
