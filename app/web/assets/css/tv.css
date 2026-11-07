@@ -835,3 +835,55 @@ html:not(.tv-device) .feedback.is-wrong .btn, html:not(.tv-device) .btn-danger {
   html:not(.tv-device) .fb-tip { font-size: 16px; }
   html:not(.tv-device) .feedback .btn { min-width: 200px; }
 }
+
+/* =====================================================================
+ * 多网卡：设备有多个 IP 时，连接页列出全部管理地址，并为每个地址生成一个二维码
+ * 单个地址沿用原来的大二维码；2–4 个用中等尺寸两列排布；5 个以上进一步缩小
+ * ===================================================================== */
+.pair-urls { display: block; margin-top: .4rem; }
+.pair-urls .pair-url { display: inline-block; margin: .8rem .8rem 0 0; }
+.qr-gallery {
+  display: -webkit-flex; display: flex;
+  -webkit-flex-wrap: wrap; flex-wrap: wrap;
+  -webkit-align-items: flex-start; align-items: flex-start;
+  -webkit-justify-content: center; justify-content: center;
+  gap: 2rem; max-width: 66rem; -webkit-flex-shrink: 0; flex-shrink: 0;
+}
+.qr-gallery .qr-card { max-width: 46rem; text-align: center; }
+.qr-gallery .qr-card .qr-box {
+  width: 46rem; height: 46rem; padding: 3rem; margin: 0 auto;
+  border-radius: 3.2rem; background: #FFFFFF;
+  -webkit-box-shadow: 0 3rem 8rem rgba(0,0,0,.5); box-shadow: 0 3rem 8rem rgba(0,0,0,.5);
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+}
+.qr-gallery .qr-card .qr-box img, .qr-gallery .qr-card .qr-box canvas { display: block; width: 40rem; height: 40rem; }
+.qr-label { margin-top: 1rem; font-size: 1.9rem; line-height: 1.4; color: #A3A3A3; word-break: break-all; }
+.qr-empty { padding: 4rem; text-align: center; font-size: 2.4rem; color: #A3A3A3; }
+html.tv-device .qr-gallery.count-1 .qr-label { display: none; }
+html:not(.tv-device) .qr-gallery.count-1 .qr-label { display: none; }
+html.tv-device .qr-gallery.count-2 .qr-card,
+html.tv-device .qr-gallery.count-3 .qr-card,
+html.tv-device .qr-gallery.count-4 .qr-card { max-width: 32rem; }
+html.tv-device .qr-gallery.count-2 .qr-card .qr-box,
+html.tv-device .qr-gallery.count-3 .qr-card .qr-box,
+html.tv-device .qr-gallery.count-4 .qr-card .qr-box { width: 30rem; height: 30rem; padding: 1.6rem; border-radius: 2rem; }
+html.tv-device .qr-gallery.count-2 .qr-card .qr-box img, html.tv-device .qr-gallery.count-2 .qr-card .qr-box canvas,
+html.tv-device .qr-gallery.count-3 .qr-card .qr-box img, html.tv-device .qr-gallery.count-3 .qr-card .qr-box canvas,
+html.tv-device .qr-gallery.count-4 .qr-card .qr-box img, html.tv-device .qr-gallery.count-4 .qr-card .qr-box canvas { width: 26.8rem; height: 26.8rem; }
+html.tv-device .qr-gallery.count-many { gap: 1.2rem; }
+html.tv-device .qr-gallery.count-many .qr-card { max-width: 26rem; }
+html.tv-device .qr-gallery.count-many .qr-card .qr-box { width: 24rem; height: 24rem; padding: 1.2rem; border-radius: 1.6rem; }
+html.tv-device .qr-gallery.count-many .qr-card .qr-box img,
+html.tv-device .qr-gallery.count-many .qr-card .qr-box canvas { width: 21.6rem; height: 21.6rem; }
+html.tv-device .qr-gallery.count-many .qr-label { font-size: 1.6rem; }
+html.tv-device[data-mode="light"] .qr-label, html.tv-device[data-mode="light"] .qr-empty { color: #666666; }
+html.tv-device[data-mode="light"] .qr-gallery .qr-card .qr-box { background: #FFFFFF; -webkit-box-shadow: 0 2rem 6rem rgba(0,0,0,.12); box-shadow: 0 2rem 6rem rgba(0,0,0,.12); }
+
+/* 手机 / 平板 / 浏览器调试页：用固定像素，避免 vw 换算后二维码过小 */
+html:not(.tv-device) .pair-wrap .qr-gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; max-width: 100%; margin: 0 auto 16px; }
+html:not(.tv-device) .qr-gallery .qr-card { max-width: 220px; }
+html:not(.tv-device) .qr-gallery .qr-card .qr-box { width: 200px; height: 200px; padding: 10px; margin: 0 auto 8px; border-radius: 16px; background: #FFFFFF; box-shadow: none; border: 1px solid var(--m-line); }
+html:not(.tv-device) .qr-gallery .qr-card .qr-box img, html:not(.tv-device) .qr-gallery .qr-card .qr-box canvas { width: 180px; height: 180px; }
+html:not(.tv-device) .qr-gallery .qr-label { margin-top: 0; font-size: 12px; color: var(--m-text-2); }
+html:not(.tv-device) .qr-gallery .qr-empty { padding: 24px; font-size: 14px; color: var(--m-text-2); }
+html:not(.tv-device) .pair-urls .pair-url { margin: 6px 6px 0 0; }

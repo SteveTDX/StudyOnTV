@@ -7,8 +7,6 @@ import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
-import java.net.Inet4Address
-import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.Executors
@@ -57,6 +55,15 @@ class LanServer(
             }
         }.apply { isDaemon = true }.start()
     }
+
+    /**
+     * 设备上的全部可用管理地址（WiFi / 网线 / 热点 / VPN 可能同时存在）。
+     * 后台绑定 0.0.0.0，所以每个地址都能打开管理面板。
+     */
+    fun localIps(): List<String> = NetworkAddresses.hosts()
+
+    /** 兼容旧调用：首选地址 */
+    fun localIp(): String = NetworkAddresses.primary()
 
     fun stop() {
         running = false
@@ -150,8 +157,11 @@ class LanServer(
                     .put("app", "StudyOnTV")
                     .put("version", BuildConfig.VERSION_NAME)
                     .put("name", Prefs.deviceName(context))
-                    .put("ip", localIp() ?: "")
+                    .put("ip", localIp())
                     .put("port", boundPort)
+                    .put("ips", JSONArray(localIps()))
+                    .put("urls", LanServer.urls(boundPort))
+                    .put("addresses", LanServer.addresses(boundPort))
                     .put("questions", store.countQuestions())
                 .put("needsToken", true)
                 .put("passwordRequired", true)
@@ -283,7 +293,11 @@ class LanServer(
                 return reply(out, 200, "application/zip", Diag.export(context), mapOf("Content-Disposition" to "attachment; filename=\"studyontv-logs-$stamp.zip\""))
             }
             path == "/api/device" && method == "GET" -> return json(out, 200, JSONObject().put("name", Prefs.deviceName(context))
-                .put("version", BuildConfig.VERSION_NAME).put("flavor", BuildConfig.FLAVOR).put("ip", localIp() ?: "").put("port", boundPort)
+                .put("version", BuildConfig.VERSION_NAME).put("flavor", BuildConfig.FLAVOR)
+                .put("ip", localIp()).put("port", boundPort)
+                .put("ips", JSONArray(localIps()))
+                .put("urls", LanServer.urls(boundPort))
+                .put("addresses", LanServer.addresses(boundPort))
                 .put("uninstallProtected", UninstallGuard.active(context)).put("autostart", Watchdog.report(context)).put("monitor", GateService.diagnostics(context)))
             path == "/api/device" && method == "PUT" -> {
                 val name = JSONObject(body).optString("name").trim()
@@ -457,15 +471,9 @@ class LanServer(
         return String(buf, 0, read, Charsets.UTF_8)
     }
 
-    
-    fun localIp(): String? = try {
-        NetworkInterface.getNetworkInterfaces().toList()
-            .filter { it.isUp && !it.isLoopback }
-            .flatMap { it.inetAddresses.toList() }
-            .filterIsInstance<Inet4Address>()
-            .firstOrNull { it.isSiteLocalAddress }
-            ?.hostAddress
-    } catch (e: Exception) {
-        null
+    companion object {
+        /** 供 /api 与连接页复用：所有可用的管理地址（含 URL 与网卡标签） */
+        fun addresses(port: Int): JSONArray = NetworkAddresses.json(port)
+        fun urls(port: Int): JSONArray = JSONArray(NetworkAddresses.urls(port))
     }
 }

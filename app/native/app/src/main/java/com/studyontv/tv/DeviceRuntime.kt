@@ -46,7 +46,12 @@ object DeviceRuntime {
 
     fun connection(context: Context): org.json.JSONObject {
         ensure(context)
-        return org.json.JSONObject().put("ip", server?.localIp() ?: "")
-            .put("port", Prefs.localPort(context)).put("token", store.adminToken())
+        val port = server?.boundPort ?: Prefs.localPort(context)
+        val addresses = NetworkAddresses.json(port)
+        return org.json.JSONObject()
+            // ip / port 保留给旧版网页；新版连接页优先读 addresses，为每个网卡地址生成一个二维码
+            .put("ip", if (addresses.length() > 0) addresses.getJSONObject(0).getString("host") else "")
+            .put("port", port).put("token", store.adminToken())
+            .put("addresses", addresses)
     }
 }

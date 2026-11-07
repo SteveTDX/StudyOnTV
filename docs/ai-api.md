@@ -62,6 +62,7 @@ Body: {"passphrase":"<管理密码>"}
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/hello` | 设备基本信息，唯一免验证的数据接口 |
+| GET | `/api/device` | 设备名称、版本、端口与地址列表（需验证） |
 | POST | `/api/auth` | 用管理密码换取令牌 |
 | GET | `/api/state` | 规则、当天统计、已解锁时长和加练池 |
 | PUT | `/api/config` | 保存规则 |
@@ -72,6 +73,15 @@ Body: {"passphrase":"<管理密码>"}
 | GET | `/api/events?limit=50` | 近期记录 |
 
 `/api/quiz/start` 与 `/api/quiz/answer` 仅供被控设备内部使用，管理 API 令牌不能代答或领取奖励。
+
+设备可能同时有 WiFi、网线、热点、VPN 等多个地址，`/api/hello`（免验证）与 `/api/device`（需验证）都返回：
+
+- `ip` / `port`：首选地址与端口，兼容旧客户端；
+- `ips`：全部可用地址字符串数组（IPv6 带方括号，可直接拼 URL）；
+- `urls`：全部 `http://<地址>:<端口>/admin/`；
+- `addresses`：`[{"host":"192.168.1.6","label":"WiFi","url":"http://192.168.1.6:8099/admin/"}, ...]`。
+
+连接页就是按 `addresses` 为每个地址生成一条管理地址和一个二维码。
 
 ## 公式与主观题
 

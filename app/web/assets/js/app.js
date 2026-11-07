@@ -289,16 +289,62 @@
     $('lockActions').innerHTML = reason === 'timeup' ? '<button class="btn btn-primary focusable" data-action="retry">开始答题</button>' : '';
     focusDefault();
   }
+  var pairKey = null;
+  function readLanInfo() {
+    try { return JSON.parse(nativeCall('lanInfo') || '') || null; } catch (e) { return null; }
+  }
   function pair() {
-    var raw = nativeCall('lanInfo'), info;
-    try { info = JSON.parse(raw); } catch (e) {}
+    var info = readLanInfo();
     if (!info) { nativeCall('openParent'); return; }
     show('pair');
-    if (!info.ip) { $('pairQr').textContent = '请先连接 WiFi'; $('pairUrl').textContent = '暂无局域网地址，学习功能可离线使用'; focusDefault(); return; }
-    var url = 'http://' + info.ip + ':' + info.port + '/admin/';
-    $('pairUrl').textContent = url;
-    var qr = window.qrcode(0, 'M'); qr.addData(url); qr.make(); $('pairQr').innerHTML = qr.createImgTag(8, 8);
+    pairKey = null;
+    renderPair(info);
     focusDefault();
+  }
+  // WiFi 切换 / 插拔网线时地址会变，连接页停留期间定时更新（地址未变则不重绘二维码）
+  function refreshPair() { var info = readLanInfo(); if (info) renderPair(info); }
+  // 设备可能同时有 WiFi、网线、热点、VPN 等多个地址：每个地址各生成一个管理地址和一个二维码
+  function renderPair(info) {
+    var gallery = $('pairQr'), list = $('pairUrls') || $('pairUrl');
+    if (!gallery || !list) return;
+    var entries = info.addresses;
+    if (!entries || !entries.length) {
+      // 兼容旧版原生层：只有单个 ip 字段
+      entries = info.ip ? [{ host: info.ip, label: '', url: 'http://' + info.ip + ':' + info.port + '/admin/' }] : [];
+    }
+    var urls = entries.map(function (e) { return e.url || ('http://' + e.host + ':' + info.port + '/admin/'); });
+    var key = urls.join('|');
+    if (key === pairKey) return;
+    pairKey = key;
+    gallery.className = 'qr-gallery count-' + (entries.length >= 5 ? 'many' : entries.length);
+    gallery.innerHTML = '';
+    if (!urls.length) {
+      if (list.id === 'pairUrls') list.innerHTML = '<span class="pair-url">暂无局域网地址，学习功能可离线使用</span>';
+      else list.textContent = '暂无局域网地址，学习功能可离线使用';
+      gallery.innerHTML = '<div class="qr-empty">请先连接 WiFi</div>';
+      return;
+    }
+    if (list.id === 'pairUrls') {
+      list.innerHTML = '';
+      urls.forEach(function (url, i) {
+        var line = document.createElement('span');
+        line.className = 'pair-url';
+        line.textContent = url + (urls.length > 1 && entries[i].label ? '（' + entries[i].label + '）' : '');
+        list.appendChild(line);
+      });
+    } else {
+      list.textContent = urls.join('  '); // 兼容旧版页面结构
+    }
+    urls.forEach(function (url, i) {
+      try {
+        var qr = window.qrcode(0, 'M'); qr.addData(url); qr.make();
+        var card = document.createElement('div'); card.className = 'qr-card';
+        var box = document.createElement('div'); box.className = 'qr-box'; box.innerHTML = qr.createImgTag(8, 8);
+        var label = document.createElement('div'); label.className = 'qr-label';
+        label.textContent = (entries[i].label ? entries[i].label + ' · ' : '') + entries[i].host;
+        card.appendChild(box); card.appendChild(label); gallery.appendChild(card);
+      } catch (e) {}
+    });
   }
   // 深色 / 浅色 / 跟随系统（电视系统的深色模式设置）
   function applyTheme(name) {
@@ -436,7 +482,8 @@
     route();
     window.setInterval(function () {
       $('clock').textContent = new Date().toTimeString().slice(0, 5);
-      if ((state.busy && !state.feedback) || state.screen === 'pair') return;
+      if (state.screen === 'pair') { refreshPair(); return; }
+      if (state.busy && !state.feedback) return;
       var version = state.config.version, wasFree = !!state.learning.free;
       loadState(function (error) {
         if (error) return;
