@@ -79,6 +79,11 @@ open class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         if (Prefs.onboarded(this)) GateService.ensureRunning(this, "app")
+        // 手动打开 APK = 恢复悬浮门禁（家长上次点「进入桌面」时被暂停）
+        if (Prefs.gateSuspended(this)) {
+            Prefs.setGateSuspended(this, false)
+            GateService.refreshNow()
+        }
         if (this is GateActivity && !DeviceRuntime.learning.status().optBoolean("free")) MediaPause.pause(this)
         if (webReleased) createWeb()
         checkUpdate()

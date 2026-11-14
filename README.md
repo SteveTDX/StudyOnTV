@@ -187,6 +187,7 @@ A：题库可以在手机管理页导出 JSON，换电视后重新导入。
 | 8 | 发布与更新源收敛到本仓库 | `Updater.kt`、`build.gradle.kts`、`update.json`、README、docs、`admin/assets/*` | 发布 v0.3.10（versionCode 15）与 `update.json`，检查更新只走本仓库 Release API / 清单；删除第三方更新实现与所有上游仓库链接，保留 LICENSE 版权声明 |
 | 9 | 填空题提交与判分优化 | `TvTextInputActivity.kt`、`app/web/assets/js/app.js`、`LearningEngine.kt` | TV 原生输入页点「确定」/回车即直接提交答案，无需再点一次「提交答案」；参考答案为英文/数字等拉丁字符的填空题不进 AI 批改队列，直接本地完全匹配并忽略所有空格差异（大小写、全半角仍归一），中文近义题、主观题与手写作答仍按原逻辑批改 |
 | 10 | 家长界面「进入桌面」按钮 | `app/web/index.html`、`app/web/assets/js/app.js`、`DeviceBridge.kt` | 在连接/管理界面「修改密码」按钮右侧新增「进入桌面」按钮，家长点击后无条件退出软件并回到安卓系统桌面；新增无门禁的 `enterDesktop()`（区别于受学习状态约束的 `exitToLauncher()`） |
+| 11 | 「进入桌面」同时暂停悬浮门禁 | `Prefs.kt`、`GateService.kt`、`DeviceBridge.kt`、`MainActivity.kt` | 点「进入桌面」后持久化暂停悬浮覆盖（锁定桌面）：悬浮层/无障碍层/GateActivity 兜底都不再弹出，计时统计不受影响；下次手动打开 APK（回到学习页）时自动恢复门禁并立即刷新 |
 
 ### 自动更新指向
 

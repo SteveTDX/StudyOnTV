@@ -46,4 +46,8 @@ object Prefs {
 
     fun serviceRunning(c: Context): Boolean = sp(c).getBoolean("service_running", false)
     fun setServiceRunning(c: Context, v: Boolean) = sp(c).edit().putBoolean("service_running", v).apply()
+
+    /** 家长点了「进入桌面」后暂停悬浮门禁；下次手动打开 APK（MainActivity 回到前台）时自动恢复 */
+    fun gateSuspended(c: Context): Boolean = sp(c).getBoolean("gate_suspended", false)
+    fun setGateSuspended(c: Context, v: Boolean) = sp(c).edit().putBoolean("gate_suspended", v).apply()
 }

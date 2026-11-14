@@ -80,10 +80,14 @@ class GateService : Service() {
             else MediaPause.release(it)
         }
         wasUsing = active && !free && reason.isEmpty() && !feedbackVisible
+        // 家长点过「进入桌面」后：暂停悬浮门禁（锁定桌面），直到下次手动打开 APK。
+        // 只拦「弹出学习页」，不影响计时与统计。
+        val suspended = Prefs.gateSuspended(this)
+        if (suspended) hideAll()
         if (!awake || !monitoring || (!settingsBlocked && ((reason.isEmpty() && !feedbackVisible) || (pkg != null && exempt(pkg, false))))) hideAll()
-        val snapshot = "reason=$gateReason free=$free awake=$awake monitoring=$monitoring pkg=$pkg active=$active gate=${hasGate()} overlay=$canOverlay"
+        val snapshot = "reason=$gateReason free=$free awake=$awake monitoring=$monitoring pkg=$pkg active=$active gate=${hasGate()} overlay=$canOverlay suspended=$suspended"
         if (snapshot != lastDiag) { lastDiag = snapshot; Diag.info("Gate", snapshot) }
-        if ((protecting || settingsBlocked) && gateReason.isNotEmpty() && now - lastGate > 1800 && !hasGate()) {
+        if (!suspended && (protecting || settingsBlocked) && gateReason.isNotEmpty() && now - lastGate > 1800 && !hasGate()) {
             lastGate = now
             val shown = WatchAccessibilityService.showGate(gateReason) || (canOverlay && overlay.show(gateReason))
             if (shown) lastGateError = ""

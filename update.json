@@ -1,15 +1,15 @@
 {
-  "version": "0.3.12",
-  "versionCode": 17,
+  "version": "0.3.13",
+  "versionCode": 18,
   "force": false,
-  "notes": "v0.3.12：家长管理界面新增「进入桌面」按钮（修改密码右侧），点击后无条件退出软件回到安卓系统桌面。",
-  "publishedAt": "2026-11-14T02:50:35.301Z",
+  "notes": "v0.3.13：点击家长界面的「进入桌面」后，悬浮覆盖（锁定桌面）功能随之暂停——学习页不再悬浮弹出，直到下次手动打开应用再次生效；计时与后台统计不受影响。",
+  "publishedAt": "2026-11-14T03:02:24.604Z",
   "assets": {
     "tv": {
-      "name": "StudyOnTV-TV-v0.3.12.apk",
-      "url": "https://github.com/SteveTDX/StudyOnTV/releases/download/v0.3.12/StudyOnTV-TV-v0.3.12.apk",
-      "sha256": "e6125b940ebb3aae247089a3977dbce8bd3e320ce9a31c781489fbaa558074ab",
-      "size": 1819285
+      "name": "StudyOnTV-TV-v0.3.13.apk",
+      "url": "https://github.com/SteveTDX/StudyOnTV/releases/download/v0.3.13/StudyOnTV-TV-v0.3.13.apk",
+      "sha256": "e095dcb7eaa19db95f8f675daae2fc5b2984f6351085e903469cc8c77eb13d48",
+      "size": 1819384
     }
   }
 }

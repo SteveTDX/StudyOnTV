@@ -73,9 +73,12 @@ open class DeviceBridge(protected val activity: Activity, private val connection
     /**
      * 家长管理界面「进入桌面」按钮：家长主动退出软件、回到安卓系统桌面。
      * 与 [exitToLauncher] 不同——这里是家长明确操作，不做学习状态/额度门禁检查，必定执行。
+     * 同时暂停悬浮门禁（锁定桌面）：先置位 Prefs.gateSuspended 再隐藏悬浮层，
+     * 下次手动打开 APK（MainActivity 回到前台）时在 onResume 自动恢复。
      */
     @JavascriptInterface
     fun enterDesktop() {
+        Prefs.setGateSuspended(activity, true)
         activity.runOnUiThread {
             GateService.hideGates()
             val openedHome = try {
