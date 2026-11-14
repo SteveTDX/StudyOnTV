@@ -186,6 +186,7 @@ A：题库可以在手机管理页导出 JSON，换电视后重新导入。
 | 7 | 多网卡多管理地址 / 多二维码 | `NetworkAddresses.kt`、`LanServer.kt`、`DeviceRuntime.kt`、`app/web/*`、`admin/assets/index-*.js`、`docs/*` | 设备同时有 WiFi / 网线 / 热点 / VPN 多个地址时，连接页列出全部管理地址并为每个地址生成对应二维码（标注网卡来源），地址随网络变化自动刷新；`/api/hello`、`/api/device` 增加 `ips`、`urls`、`addresses` 字段，后台「设备」页显示多个 IP；单地址时保持原样 |
 | 8 | 发布与更新源收敛到本仓库 | `Updater.kt`、`build.gradle.kts`、`update.json`、README、docs、`admin/assets/*` | 发布 v0.3.10（versionCode 15）与 `update.json`，检查更新只走本仓库 Release API / 清单；删除第三方更新实现与所有上游仓库链接，保留 LICENSE 版权声明 |
 | 9 | 填空题提交与判分优化 | `TvTextInputActivity.kt`、`app/web/assets/js/app.js`、`LearningEngine.kt` | TV 原生输入页点「确定」/回车即直接提交答案，无需再点一次「提交答案」；参考答案为英文/数字等拉丁字符的填空题不进 AI 批改队列，直接本地完全匹配并忽略所有空格差异（大小写、全半角仍归一），中文近义题、主观题与手写作答仍按原逻辑批改 |
+| 10 | 家长界面「进入桌面」按钮 | `app/web/index.html`、`app/web/assets/js/app.js`、`DeviceBridge.kt` | 在连接/管理界面「修改密码」按钮右侧新增「进入桌面」按钮，家长点击后无条件退出软件并回到安卓系统桌面；新增无门禁的 `enterDesktop()`（区别于受学习状态约束的 `exitToLauncher()`） |
 
 ### 自动更新指向
 
