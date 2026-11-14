@@ -70,6 +70,29 @@ open class DeviceBridge(protected val activity: Activity, private val connection
         }
     }
 
+    /**
+     * 家长管理界面「进入桌面」按钮：家长主动退出软件、回到安卓系统桌面。
+     * 与 [exitToLauncher] 不同——这里是家长明确操作，不做学习状态/额度门禁检查，必定执行。
+     */
+    @JavascriptInterface
+    fun enterDesktop() {
+        activity.runOnUiThread {
+            GateService.hideGates()
+            val openedHome = try {
+                activity.startActivity(
+                    Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+                true
+            } catch (e: Exception) {
+                Diag.error("UI", "HOME intent rejected, fallback to moveTaskToBack", e)
+                false
+            }
+            if (!openedHome) activity.moveTaskToBack(true)
+            if (activity is GateActivity) activity.finish()
+        }
+    }
+
     @JavascriptInterface
     fun backToQuiz() {
         activity.runOnUiThread {
